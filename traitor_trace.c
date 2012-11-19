@@ -25,6 +25,10 @@
 #include "includes.h"
 #include "smbd/proto.h"
 
+#include <fcntl.h>
+#include <vfs.h>
+#include <auth.h>
+
 /* PLEASE,PLEASE READ THE VFS MODULES CHAPTER OF THE 
    SAMBA DEVELOPERS GUIDE!!!!!!
  */
@@ -135,7 +139,21 @@ static void traitor_trace_init_search_op(struct vfs_handle_struct *handle, SMB_S
 static int traitor_trace_open(vfs_handle_struct *handle, struct smb_filename *smb_fname,
 		     files_struct *fsp, int flags, mode_t mode)
 {
-	return SMB_VFS_NEXT_OPEN(handle, smb_fname, fsp, flags, mode);
+	char *user,*filename,*command;
+
+	//prepare some variables
+	user = handle->conn->session_info->sanitized_username;
+	filename = smb_fname->base_name;
+	
+	//check to see if the file exists
+	SMB_STRUCT_STAT buf;
+	if (sys_stat(filename,&buf,0) != 0)
+		return SMB_VFS_NEXT_OPEN(handle, smb_fname, fsp, flags, mode);
+
+	//run command and pipe output back to the smbd
+	DEBUG(1, ("traitor_trace_open %s by %s\n", filename, user));
+	asprintf(&command,"/var/samba/mytest %s \"%s\"", user, filename);
+	return sys_popen(command);
 }
 
 static NTSTATUS traitor_trace_create_file(struct vfs_handle_struct *handle,
