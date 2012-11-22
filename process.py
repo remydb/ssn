@@ -6,6 +6,8 @@ import syslog
 import subprocess
 import Crypto.PublicKey.RSA as RSA
 import os
+import Image
+import stepic
 
 class Proc:
 
@@ -14,36 +16,30 @@ class Proc:
 		self.user = sys.argv[2]
 		self.date = sys.argv[3]
 
-	def sign(self):
+	def encrypt(self):
 		key = RSA.generate(2048,os.urandom)
 		K = '1234'
 		enc = key.encrypt(self.user + " " + self.date,K)
 		print enc
-		sig = key.sign(self.user + " " + self.date,K)
-		# print sig
-		encsig = key.encrypt(sig[0],K)
-		print encsig
-		versig = key.verify(self.user + " " + self.date,sig)
-		print versig
 
-
-	def jpg():
-		subprocess.call(["./steghide", "-blabla"])
+	def jpg(self):
+		im = Image.open(self.file)
+		s = stepic.Steganographer(im)
+		ime = s.encode(self.user + " " + self.date)
+		ime.save('output.jpg','JPEG')
 
 if __name__ == "__main__":
 	x = Proc()
-	x.sign()
+	try:
+		ext0 = re.search('[^.]*$', x.file)
+		ext1 = ext0.group(0)
+		func = getattr(x, ext1)
+	except:
+		syslog.syslog(syslog.LOG_ERR ,"[Python-Proc] Specified file extension not supported, terminating")
+		quit()
 
-
-	# try:
-	# 	func = getattr(x, re.search('[^.]*$', x.file))
-	# except:
-	# 	syslog.syslog(LOG_ERR, "[Python-Proc] Specified file extension not supported, terminating")
-	# 	quit()
-
-	# if(callable(func)):
-	# 	funct()
-
+	if(callable(func)):
+	 	func()
 
 
 
@@ -60,6 +56,11 @@ if __name__ == "__main__":
 
 
 
+####
+####
+#### Old stuff, for possible future reference
+####
+####
 
 	# def ext(self):
 	# 	extension = re.search('[^.]*$', self.file)
@@ -74,3 +75,10 @@ if __name__ == "__main__":
 
 	# 	else:
 	# 		print "Unknown extension for source file, terminating now"
+
+			# sig = key.sign(self.user + " " + self.date,K)
+		# # print sig
+		# encsig = key.encrypt(sig[0],K)
+		# print encsig
+		# versig = key.verify(self.user + " " + self.date,sig)
+		# print versig
