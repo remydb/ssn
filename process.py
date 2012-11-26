@@ -46,6 +46,12 @@ class Proc:
 		ime = s.encode(self.user + " " + self.date)
 		ime.save('output.gif','GIF')
 
+	def mp3(self):
+		#Placeholder for calling mp3 stego
+
+	def pdf(self):
+		#Placeholder for calling pdf stego
+
 if __name__ == "__main__":
 	x = Proc()
 	try:
