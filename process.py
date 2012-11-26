@@ -17,9 +17,9 @@ class Proc:
 		self.date = sys.argv[3]
 
 	def encrypt(self):
-		file = open('./priv_key.pem', 'r')
-		key = RSA.importKey(file.read())
-		file.close()
+		f = open('./priv_key.pem', 'r')
+		key = RSA.importKey(f.read())
+		f.close()
 		K = '' # Can leave K empty, as the encrypt function actually ignores this value
 		enc = key.encrypt(self.user + " " + self.date,K)
 		return enc
@@ -29,28 +29,28 @@ class Proc:
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save('output.jpg','JPEG')
+		ime.save(self.file + '.tmp','JPEG')
 
 	def png(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save('output.png','PNG')
+		ime.save(self.file + '.tmp','PNG')
 
 	def bmp(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save('output.bmp','BMP')
+		ime.save(self.file + '.tmp','BMP')
 
 	def gif(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save('output.gif','GIF')
+		ime.save(self.file + '.tmp','GIF')
 
 	def mp3(self):
 		#Placeholder for calling mp3 stego
@@ -72,3 +72,4 @@ if __name__ == "__main__":
 
 	if(callable(func)):
 	 	func()
+	 	print x.file + '.tmp'
