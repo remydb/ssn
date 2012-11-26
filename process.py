@@ -28,6 +28,24 @@ class Proc:
 		ime = s.encode(self.user + " " + self.date)
 		ime.save('output.jpg','JPEG')
 
+	def png(self):
+		im = Image.open(self.file)
+		s = stepic.Steganographer(im)
+		ime = s.encode(self.user + " " + self.date)
+		ime.save('output.png','PNG')
+
+	def bmp(self):
+		im = Image.open(self.file)
+		s = stepic.Steganographer(im)
+		ime = s.encode(self.user + " " + self.date)
+		ime.save('output.bmp','BMP')
+
+	def gif(self):
+		im = Image.open(self.file)
+		s = stepic.Steganographer(im)
+		ime = s.encode(self.user + " " + self.date)
+		ime.save('output.gif','GIF')
+
 if __name__ == "__main__":
 	x = Proc()
 	try:
