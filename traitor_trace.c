@@ -18,21 +18,25 @@
 #include <fcntl.h>
 #include <vfs.h>
 #include <auth.h>
+#include <string.h>
+
 
 typedef struct traitor_trace_file_map {
 	struct traitor_trace_file_map *next;
 	char *filename;	
 	char *tempname;
+	int fnum;
 } traitor_trace_file_map_entry;
 
 traitor_trace_file_map_entry *traitor_trace_file_map_list=NULL;
 
-traitor_trace_file_map_entry *traitor_trace_file_map_insert(char *filename, char *tempname){
-	DEBUG(1, ("traitor_trace_file_map_insert: %s, %s\n", filename, tempname));
+traitor_trace_file_map_entry *traitor_trace_file_map_insert(char *filename, char *tempname,int fnum){
+	DEBUG(2, ("traitor_trace_file_map_insert: %s, %s\n", filename, tempname));
 	traitor_trace_file_map_entry *node;
 	if(!(node=malloc(sizeof(traitor_trace_file_map_entry)))) return NULL;
-	node->filename=filename;
-	node->tempname=tempname;
+	node->filename=strdup(filename);
+	node->tempname=strdup(tempname);
+	node->fnum=fnum;
 	if(traitor_trace_file_map_list==NULL){
 		node->next=NULL;
 	}
@@ -40,30 +44,51 @@ traitor_trace_file_map_entry *traitor_trace_file_map_insert(char *filename, char
 		node->next=traitor_trace_file_map_list;
 	}
 	traitor_trace_file_map_list = node;
-	DEBUG(1, ("traitor_trace_file_map_insert: %s\n",traitor_trace_file_map_list->tempname));
 	return node;
 }
 
 
-void traitor_trace_file_map_remove(char *tempname) {
+void traitor_trace_file_map_remove(int fnum) {
 	if(traitor_trace_file_map_list == NULL) return;
 
 	traitor_trace_file_map_entry *list = traitor_trace_file_map_list;
-	while(list->next && list->tempname!=tempname) list=list->next;
-	if(list->next) {
-		traitor_trace_file_map_entry *hit = list->next;
-		list->next=list->next->next;
-		free(hit);
+	traitor_trace_file_map_entry *prev = NULL;
+
+	while(list){
+		if(list->fnum==fnum){
+			DEBUG(2, ("traitor_trace_file_map_remove: %s\n", list->tempname));
+
+			if(prev==NULL){
+				traitor_trace_file_map_list = list->next;
+			}
+			else{
+				prev->next = list->next;
+			}
+			
+			int stat = unlink(list->tempname);
+			DEBUG(2, ("traitor_trace_file_map_remove: %s\n", strerror(errno)));
+			free(list->filename);
+			free(list->tempname);
+			free(list);
+			return;
+		}
+		prev = list;
+		list = list->next;
 	}
+	return;
 }
 
 traitor_trace_file_map_entry *traitor_trace_file_map_find(char *filename){
 	if(traitor_trace_file_map_list == NULL) return NULL;
 
 	traitor_trace_file_map_entry *list = traitor_trace_file_map_list;
-	while(list->next && list->filename!=filename) list=list->next;
-	if(list->next) {
-		return list->next;
+
+	while(list){
+		if(strcmp(list->filename,filename)==0){
+			DEBUG(2, ("traitor_trace_file_map_find: Found %s\n", list->tempname));
+			return list;
+		}
+		list = list->next;
 	}
 	return NULL;
 }
@@ -93,8 +118,8 @@ static int traitor_trace_open(vfs_handle_struct *handle, struct smb_filename *sm
 		return SMB_VFS_NEXT_OPEN(handle, smb_fname, fsp, flags, mode);
 
 	//run command and open output to read
-	DEBUG(1, ("traitor_trace_open %s by %s\n", filename, user));
-	asprintf(&command,"%s %s \"%s\"", script, user, filename);
+	DEBUG(1, ("traitor_trace_open %s/%s by %s\n", handle->conn->origpath, filename, user));
+	asprintf(&command,"python %s %s/%s \"%s\"", script, handle->conn->origpath, filename, user);
 	fp = popen(command, "r");
 
 	//read first line. This sould contain the temporary file
@@ -105,21 +130,32 @@ static int traitor_trace_open(vfs_handle_struct *handle, struct smb_filename *sm
 	if (line[len - 1] == '\n')
 	    line[len - 1] = '\0';
 
-	DEBUG(1, ("traitor_trace_open has received tmpfile: %s\n", line));
-	fclose(fp);
+	DEBUG(1, ("traitor_trace_open line size %d\n",strlen(line)));
+	if(len>strlen(filename)){
+		DEBUG(1, ("traitor_trace_open has received tmpfile: %s\n", line));
+		fclose(fp);
 
-	traitor_trace_file_map_insert(smb_fname->base_name,line);
-	smb_fname->base_name = line;
+		traitor_trace_file_map_insert(smb_fname->base_name,line,fsp->fnum);
+		smb_fname->base_name = line;
+	}
 	return SMB_VFS_NEXT_OPEN(handle, smb_fname, fsp, flags, mode);
+}
+
+static int traitor_trace_close(vfs_handle_struct *handle, files_struct *fsp)
+{
+	DEBUG(1, ("traitor_trace_close: %d\n", fsp->fnum));
+	traitor_trace_file_map_remove(fsp->fnum);
+	return SMB_VFS_NEXT_CLOSE(handle, fsp);
 }
 
 static int traitor_trace_stat(vfs_handle_struct *handle, struct smb_filename *smb_fname)
 {
 	traitor_trace_file_map_entry *result = traitor_trace_file_map_find(smb_fname->base_name);
 	if(result == NULL)
-		DEBUG(1, ("traitor_trace_stat for %s\n", smb_fname->base_name));
+		DEBUG(2, ("traitor_trace_stat for %s\n", smb_fname->base_name));
 	else{
-		DEBUG(1, ("traitor_trace_stat for %s\n", result->tempname));
+		smb_fname->base_name = result->tempname;
+		DEBUG(2, ("traitor_trace_stat for %s\n", result->tempname));
 	}
 	return SMB_VFS_NEXT_STAT(handle, smb_fname);
 }
@@ -128,6 +164,7 @@ static int traitor_trace_stat(vfs_handle_struct *handle, struct smb_filename *sm
 
 struct vfs_fn_pointers traitor_trace_fns = {
 	.open_fn = traitor_trace_open,
+	.close_fn = traitor_trace_close,
 	.stat = traitor_trace_stat,
 };
 
