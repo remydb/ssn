@@ -8,20 +8,20 @@ import Crypto.PublicKey.RSA as RSA
 import os
 import Image
 import stepic
+import datetime
 
 class Proc:
 
 	def __init__(self):
 		self.file = sys.argv[1]
 		self.user = sys.argv[2]
-		self.date = sys.argv[3]
 
 	def encrypt(self):
 		f = open('./priv_key.pem', 'r')
 		key = RSA.importKey(f.read())
 		f.close()
 		K = '' # Can leave K empty, as the encrypt function actually ignores this value
-		enc = key.encrypt(self.user + " " + self.date,K)
+		enc = key.encrypt(self.user + " " + str(datetime.datetime.now()),K)
 		return enc
 
 	def jpg(self):
