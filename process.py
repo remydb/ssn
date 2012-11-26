@@ -17,40 +17,48 @@ class Proc:
 		self.date = sys.argv[3]
 
 	def encrypt(self):
-		key = RSA.generate(2048,os.urandom)
-		K = '1234'
+		file = open('./priv_key.pem', 'r')
+		key = RSA.importKey(file.read())
+		file.close()
+		K = '' # Can leave K empty, as the encrypt function actually ignores this value
 		enc = key.encrypt(self.user + " " + self.date,K)
-		print enc
+		return enc
 
 	def jpg(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
-		ime = s.encode(self.user + " " + self.date)
+		data = str(self.encrypt())
+		ime = s.encode(data)
 		ime.save('output.jpg','JPEG')
 
 	def png(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
-		ime = s.encode(self.user + " " + self.date)
+		data = str(self.encrypt())
+		ime = s.encode(data)
 		ime.save('output.png','PNG')
 
 	def bmp(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
-		ime = s.encode(self.user + " " + self.date)
+		data = str(self.encrypt())
+		ime = s.encode(data)
 		ime.save('output.bmp','BMP')
 
 	def gif(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
-		ime = s.encode(self.user + " " + self.date)
+		data = str(self.encrypt())
+		ime = s.encode(data)
 		ime.save('output.gif','GIF')
 
 	def mp3(self):
 		#Placeholder for calling mp3 stego
+		quit()
 
 	def pdf(self):
 		#Placeholder for calling pdf stego
+		quit()
 
 if __name__ == "__main__":
 	x = Proc()
