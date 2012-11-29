@@ -4,53 +4,56 @@ import sys
 import re
 import syslog
 import subprocess
-import Crypto.PublicKey.RSA as RSA
 import os
 import Image
 import stepic
 import datetime
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
 
 class Proc:
 
 	def __init__(self):
 		self.file = sys.argv[1]
 		self.user = sys.argv[2]
+		self.tmp_file = os.path.dirname(sys.argv[1]) + "/" + os.path.basename(sys.argv[1]) + '.tmp'
 
 	def encrypt(self):
-		f = open('./priv_key.pem', 'r')
+		f = open('/var/samba/priv_key.pem', 'r')
 		key = RSA.importKey(f.read())
 		f.close()
-		K = '' # Can leave K empty, as the encrypt function actually ignores this value
-		enc = key.encrypt(self.user + " " + str(datetime.datetime.now()),K)
-		return enc
+		cipher = PKCS1_OAEP.new(key)
+		message = self.user+ " " + str(datetime.datetime.now())
+		ciphertext = cipher.encrypt(message)
+		return ciphertext
 
 	def jpg(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save(self.file + '.tmp','JPEG')
+		ime.save(self.tmp_file,'JPEG')
 
 	def png(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save(self.file + '.tmp','PNG')
+		ime.save(self.tmp_file,'PNG')
 
 	def bmp(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save(self.file + '.tmp','BMP')
+		ime.save(self.tmp_file,'BMP')
 
 	def gif(self):
 		im = Image.open(self.file)
 		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
 		ime = s.encode(data)
-		ime.save(self.file + '.tmp','GIF')
+		ime.save(self.tmp_file,'GIF')
 
 	def mp3(self):
 		#Placeholder for calling mp3 stego
@@ -71,5 +74,5 @@ if __name__ == "__main__":
 		quit()
 
 	if(callable(func)):
-	 	func()
-	 	print x.file + '.tmp'
+		func()
+		print x.tmp_file
