@@ -17,7 +17,7 @@ class Proc:
 	def __init__(self):
 		self.file		= sys.argv[1]
 		self.user		= sys.argv[2]
-		self.tmp_file	= os.path.dirname(sys.argv[1]) + "/." + md5.new(self.file + str(datetime.datetime.now()))
+		self.tmp_file	= os.path.dirname(sys.argv[1]) + "/." + md5.new(self.file + self.user + str(datetime.datetime.now())).hexdigest()
 
 	def encrypt(self):
 		f = open('./priv_key.pem', 'r')
