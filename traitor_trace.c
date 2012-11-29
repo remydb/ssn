@@ -151,9 +151,7 @@ static int traitor_trace_close(vfs_handle_struct *handle, files_struct *fsp)
 static int traitor_trace_stat(vfs_handle_struct *handle, struct smb_filename *smb_fname)
 {
 	traitor_trace_file_map_entry *result = traitor_trace_file_map_find(smb_fname->base_name);
-	if(result == NULL)
-		DEBUG(2, ("traitor_trace_stat for %s\n", smb_fname->base_name));
-	else{
+	if(result != NULL){
 		smb_fname->base_name = result->tempname;
 		DEBUG(2, ("traitor_trace_stat for %s\n", result->tempname));
 	}
