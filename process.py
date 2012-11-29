@@ -8,18 +8,19 @@ import os
 import Image
 import stepic
 import datetime
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
+import md5
+import Crypto.Cipher.PKCS1_OAEP as PKCS1_OAEP
+import Crypto.PublicKey.RSA as RSA
 
 class Proc:
 
 	def __init__(self):
-		self.file = sys.argv[1]
-		self.user = sys.argv[2]
-		self.tmp_file = os.path.dirname(sys.argv[1]) + "/" + os.path.basename(sys.argv[1]) + '.tmp'
+		self.file		= sys.argv[1]
+		self.user		= sys.argv[2]
+		self.tmp_file	= os.path.dirname(sys.argv[1]) + "/." + md5.new(self.file + str(datetime.datetime.now()))
 
 	def encrypt(self):
-		f = open('/var/samba/priv_key.pem', 'r')
+		f = open('./priv_key.pem', 'r')
 		key = RSA.importKey(f.read())
 		f.close()
 		cipher = PKCS1_OAEP.new(key)
