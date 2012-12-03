@@ -9,6 +9,7 @@ import Image
 import stepic
 import datetime
 import md5
+import base64
 import Crypto.Cipher.PKCS1_OAEP as PKCS1_OAEP
 import Crypto.PublicKey.RSA as RSA
 
@@ -30,30 +31,27 @@ class Proc:
 
 	def jpg(self):
 		im = Image.open(self.file)
-		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
-		ime = s.encode(data)
+		print data
+		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'JPEG')
 
 	def png(self):
 		im = Image.open(self.file)
-		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
-		ime = s.encode(data)
+		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'PNG')
 
 	def bmp(self):
 		im = Image.open(self.file)
-		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
-		ime = s.encode(data)
+		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'BMP')
 
 	def gif(self):
 		im = Image.open(self.file)
-		s = stepic.Steganographer(im)
 		data = str(self.encrypt())
-		ime = s.encode(data)
+		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'GIF')
 
 	def mp3(self):
