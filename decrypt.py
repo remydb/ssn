@@ -3,7 +3,6 @@
 import sys
 import re
 import syslog
-import subprocess
 import os
 import Image
 import stepic
