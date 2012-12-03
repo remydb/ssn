@@ -9,7 +9,6 @@ import Image
 import stepic
 import datetime
 import md5
-import base64
 import Crypto.Cipher.PKCS1_OAEP as PKCS1_OAEP
 import Crypto.PublicKey.RSA as RSA
 
@@ -32,6 +31,20 @@ class Decrypt:
 		message = self.decrypt(ciphertext)
 		print message
 
+	def dejpg(self):
+		os.system('steghide --extract -sf ' + self.file + ' -p stego -xf ' + os.path.dirname(sys.argv[1]) + './.extract')
+		f = open('./.extract','r')
+		ciphertext = f.read()
+		f.close()
+		os.remove('./.extract')
+		message = self.decrypt(ciphertext)
+		print message
+
+
 if __name__ == "__main__":
 	x = Decrypt()
-	x.desteg()
+	filename, fileext = os.path.splitext(x.file)
+	if fileext == '.jpg' or '.JPG' or '.jpeg' or '.JPEG':
+		x.dejpg()
+	else:
+		x.desteg()
