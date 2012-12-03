@@ -1,20 +1,19 @@
-README for Samba Virtual File System (VFS) Example
+README Traitor Trace VFS module
 ===================================================
 
-This directory contains skeleton VFS modules.  When used,
-this module simply passes all requests back to the disk functions
-(i.e it operates as a passthrough filter).  It should be
-useful as a starting point for developing new VFS
-modules. 
+This directory contains the VFS module.
+To use just execute the following commands:
 
-Please look at skel_opaque.c when you want your module to provide
-final functions, like a database filesystem.
+./configure
+make
+make install
 
-Please look at skel_transport.c when you want your module to provide
-passthrough functions, like audit modules. 
+The module will be compiled and installed in the samba direcotry containing all VFS libraries.
 
-Please read the VFS chapter in the HOWTO collection for general help 
-on the usage of VFS modules.
-
-Further documentation on writing VFS modules for Samba can be found in
-Samba Developers Guide.
+Example smb.conf:
+[share1]
+path = /var/samba/share1
+vfs objects = traitor_trace
+traitor_trace:script = /var/samba/process.py
+browseable=yes
+writeable=yes
