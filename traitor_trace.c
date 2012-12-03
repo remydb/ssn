@@ -32,11 +32,20 @@ traitor_trace_file_map_entry *traitor_trace_file_map_list=NULL;
 
 traitor_trace_file_map_entry *traitor_trace_file_map_insert(char *filename, char *tempname,int fnum){
 	DEBUG(2, ("traitor_trace_file_map_insert: %s, %s\n", filename, tempname));
+	
 	traitor_trace_file_map_entry *node;
-	if(!(node=malloc(sizeof(traitor_trace_file_map_entry)))) return NULL;
+	
+	if(!(node=malloc(sizeof(traitor_trace_file_map_entry)))){
+		//malloc failed so return NULL
+		return NULL;	
+	}
+	
+	//copy data to new list node
 	node->filename=strdup(filename);
 	node->tempname=strdup(tempname);
 	node->fnum=fnum;
+	
+	//add the node to the list
 	if(traitor_trace_file_map_list==NULL){
 		node->next=NULL;
 	}
@@ -49,6 +58,7 @@ traitor_trace_file_map_entry *traitor_trace_file_map_insert(char *filename, char
 
 
 void traitor_trace_file_map_remove(int fnum) {
+	//immediately return if list is empty
 	if(traitor_trace_file_map_list == NULL) return;
 
 	traitor_trace_file_map_entry *list = traitor_trace_file_map_list;
@@ -65,8 +75,11 @@ void traitor_trace_file_map_remove(int fnum) {
 				prev->next = list->next;
 			}
 			
+			//remove file en free mem
 			int stat = unlink(list->tempname);
-			DEBUG(2, ("traitor_trace_file_map_remove: %s\n", strerror(errno)));
+			if(stat<0){
+				DEBUG(2, ("traitor_trace_file_map_remove: %s\n", strerror(errno)));
+			}
 			free(list->filename);
 			free(list->tempname);
 			free(list);
@@ -79,6 +92,7 @@ void traitor_trace_file_map_remove(int fnum) {
 }
 
 traitor_trace_file_map_entry *traitor_trace_file_map_find(char *filename){
+	//immediately return if list is empty
 	if(traitor_trace_file_map_list == NULL) return NULL;
 
 	traitor_trace_file_map_entry *list = traitor_trace_file_map_list;
@@ -103,8 +117,8 @@ static int traitor_trace_open(vfs_handle_struct *handle, struct smb_filename *sm
 	char *user,*filename,*command;
 	const char *script;
 	FILE *fp;
-	char line[128];
-	unsigned int len;
+	char *line = NULL;
+    size_t len = 0;
 
 
 	//prepare some variables
@@ -119,18 +133,24 @@ static int traitor_trace_open(vfs_handle_struct *handle, struct smb_filename *sm
 
 	//run command and open output to read
 	DEBUG(1, ("traitor_trace_open %s/%s by %s\n", handle->conn->origpath, filename, user));
-	asprintf(&command,"python %s %s/%s \"%s\"", script, handle->conn->origpath, filename, user);
+	if(!asprintf(&command,"python %s %s/%s \"%s\"", script, handle->conn->origpath, filename, user)){
+		//asprintf failed
+		return -1;
+	}
 	fp = popen(command, "r");
 
-	//read first line. This sould contain the temporary file
-	fgets(line, sizeof line, fp);
+	//read first line. This should contain the temporary file
+	if(getline(&line, &len, fp)<0){
+		//fgets failed
+		return -1;
+	}
 	
 	//remove the eol char
 	len = strlen(line);
 	if (line[len - 1] == '\n')
 	    line[len - 1] = '\0';
 
-	DEBUG(1, ("traitor_trace_open line size %d\n",strlen(line)));
+	DEBUG(1, ("traitor_trace_open line size %d\n",(int)strlen(line)));
 	if(len>strlen(filename)){
 		DEBUG(1, ("traitor_trace_open has received tmpfile: %s\n", line));
 		fclose(fp);
@@ -166,7 +186,6 @@ struct vfs_fn_pointers traitor_trace_fns = {
 	.stat = traitor_trace_stat,
 };
 
-NTSTATUS init_samba_module(void)
-{
+NTSTATUS init_samba_module(void) {
 	return smb_register_vfs(SMB_VFS_INTERFACE_VERSION, "traitor_trace", &traitor_trace_fns);
 }
