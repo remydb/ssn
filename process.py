@@ -29,7 +29,6 @@ class Proc:
 		return ciphertext
 
 	def jpg(self):
-		im = Image.open(self.file)
 		data = str(self.encrypt())
 		f = open(self.tmp_efile, 'w')
 		f.write(data)
@@ -54,14 +53,6 @@ class Proc:
 		data = str(self.encrypt())
 		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'GIF')
-
-	def mp3(self):
-		#Placeholder for calling mp3 stego
-		quit()
-
-	def pdf(self):
-		#Placeholder for calling pdf stego
-		quit()
 
 if __name__ == "__main__":
 	x = Proc()

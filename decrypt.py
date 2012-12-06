@@ -1,13 +1,9 @@
 #!/usr/bin/python
 
 import sys
-import re
-import syslog
 import os
 import Image
 import stepic
-import datetime
-import md5
 import Crypto.Cipher.PKCS1_OAEP as PKCS1_OAEP
 import Crypto.PublicKey.RSA as RSA
 
@@ -38,7 +34,6 @@ class Decrypt:
 		os.remove('./.extract')
 		message = self.decrypt(ciphertext)
 		print message
-
 
 if __name__ == "__main__":
 	x = Decrypt()
