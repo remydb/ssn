@@ -33,7 +33,7 @@ class Proc:
 		f = open(self.tmp_efile, 'w')
 		f.write(data)
 		f.close()
-		os.system("steghide embed -cf " + self.file + " -ef " + self.tmp_efile + " -p stego -e none -Z -sf " + self.tmp_file)
+		os.system("steghide embed -q -cf " + self.file + " -ef " + self.tmp_efile + " -p stego -e none -Z -sf " + self.tmp_file)
 		os.remove(self.tmp_efile)
 
 	def png(self):
