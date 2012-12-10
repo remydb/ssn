@@ -7,7 +7,6 @@ import os
 import Image
 import stepic
 import datetime
-#import Crypto.Cipher.PKCS1_OAEP as PKCS1_OAEP
 import Crypto.PublicKey.RSA as RSA
 import Crypto.Signature.PKCS1_v1_5 as PKCS1_v1_5
 import Crypto.Hash.MD5 as MD5
