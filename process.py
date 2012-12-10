@@ -20,7 +20,7 @@ class Proc:
 		self.tmp_file	= os.path.dirname(sys.argv[1]) + "/." + MD5.new(self.file + self.user + str(datetime.datetime.now())).hexdigest()
 		self.tmp_efile	= os.path.dirname(sys.argv[1]) + "/.embedfile"
 
-	def encrypt(self):
+	def sign(self):
 		f = open('./priv_key.pem', 'r')
 		key = RSA.importKey(f.read())
 		f.close()
@@ -30,7 +30,7 @@ class Proc:
 		return ciphertext
 
 	def jpg(self):
-		data = "***" + str(self.encrypt()) + "*** " + self.user + ' ' + self.time
+		data = "***" + str(self.sign()) + "***" + self.user + ' ' + self.time
 		f = open(self.tmp_efile, 'w')
 		f.write(data)
 		f.close()
@@ -39,19 +39,19 @@ class Proc:
 
 	def png(self):
 		im = Image.open(self.file)
-		data = "***" + str(self.encrypt()) + "*** " + self.user + ' ' + self.time
+		data = "***" + str(self.sign()) + "***" + self.user + ' ' + self.time
 		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'PNG')
 
 	def bmp(self):
 		im = Image.open(self.file)
-		data = "***" + str(self.encrypt()) + "*** " + self.user + ' ' + self.time
+		data = "***" + str(self.sign()) + "***" + self.user + ' ' + self.time
 		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'BMP')
 
 	def gif(self):
 		im = Image.open(self.file)
-		data = "***" + str(self.encrypt()) + "*** " + self.user + ' ' + self.time
+		data = "***" + str(self.sign()) + "***" + self.user + ' ' + self.time
 		ime = stepic.encode(im,data)
 		ime.save(self.tmp_file,'GIF')
 
