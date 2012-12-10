@@ -34,10 +34,6 @@ class Proc:
 		f = open(self.tmp_efile, 'w')
 		f.write(data)
 		f.close()
-<<<<<<< HEAD
-		print data
-=======
->>>>>>> 75bdc00ab57809a2de484b0dd757020a9d5d1ec0
 		os.system("steghide embed -q -cf " + self.file + " -ef " + self.tmp_efile + " -p stego -e none -Z -sf " + self.tmp_file)
 		os.remove(self.tmp_efile)
 
