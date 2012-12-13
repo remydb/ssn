@@ -18,6 +18,7 @@ class Decrypt:
 		key = RSA.importKey(f.read())
 		f.close()
 		cipher = PKCS1_v1_5.new(key)
+		print ciphertext
 		message = cipher.verify(MD5.new(ciphertext.split('***')[2]),ciphertext.split('***')[1])
 		if message == True:
 			return "File retrieval info: " + ciphertext.split('***')[2] + "\nFile info has been verified by signature"
@@ -26,10 +27,15 @@ class Decrypt:
 		return message
 
 	def desteg(self):
-		im = Image.open(self.file)
+		try:
+			im = Image.open(self.file)
+		except:
+			print "Image file is damaged, watermark has probably been tampered with."
+			quit()
 		ciphertext = stepic.decode(im)
 		message = self.verify(ciphertext)
 		print message
+
 
 	def dejpg(self):
 		os.system('steghide --extract -q -sf ' + self.file + ' -p stego -xf ' + os.path.dirname(sys.argv[1]) + './.extract')
