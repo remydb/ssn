@@ -16,7 +16,7 @@ class Proc:
 	def __init__(self):
 		self.file		= sys.argv[1]
 		self.user		= sys.argv[2]
-		self.time		= datetime.datetime.now().strftime('%Y-%M-%D %H:%M:%S')
+		self.time		= datetime.datetime.now().strftime('%Y-%M-%d %H:%M:%S')
 		self.tmp_file	= os.path.dirname(sys.argv[1]) + "/." + MD5.new(self.file + self.user + str(datetime.datetime.now())).hexdigest()
 		self.tmp_efile	= os.path.dirname(sys.argv[1]) + "/.embedfile"
 

@@ -43,7 +43,7 @@ class Decrypt:
 if __name__ == "__main__":
 	x = Decrypt()
 	filename, fileext = os.path.splitext(x.file)
-	if fileext == '.jpg' or '.JPG' or '.jpeg' or '.JPEG':
+	if fileext == '.jpg' or fileext == '.JPG' or fileext == '.jpeg' or fileext == '.JPEG':
 		x.dejpg()
 	else:
 		x.desteg()
