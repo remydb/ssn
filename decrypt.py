@@ -4,6 +4,8 @@ import sys
 import os
 import Image
 import stepic
+import time
+import subprocess
 import Crypto.Signature.PKCS1_v1_5 as PKCS1_v1_5
 import Crypto.PublicKey.RSA as RSA
 import Crypto.Hash.MD5 as MD5
@@ -18,7 +20,6 @@ class Decrypt:
 		key = RSA.importKey(f.read())
 		f.close()
 		cipher = PKCS1_v1_5.new(key)
-		print ciphertext
 		message = cipher.verify(MD5.new(ciphertext.split('***')[2]),ciphertext.split('***')[1])
 		if message == True:
 			return "File retrieval info: " + ciphertext.split('***')[2] + "\nFile info has been verified by signature"
@@ -38,11 +39,16 @@ class Decrypt:
 
 
 	def dejpg(self):
-		os.system('steghide --extract -q -sf ' + self.file + ' -p stego -xf ' + os.path.dirname(sys.argv[1]) + './.extract')
-		f = open('./.extract','r')
+		with open(os.devnull, 'w') as tempf:
+			subprocess.call('steghide --extract -q -sf ' + self.file + ' -p stego -xf ' + os.path.dirname(sys.argv[1]) + '.extract', shell=True, stdout=tempf, stderr=tempf)
+		try:
+			f = open('.extract','r')
+		except:
+			print "Steghide could not retrieve information from specified file"
+			quit()
 		ciphertext = f.read()
 		f.close()
-		os.remove('./.extract')
+		os.remove('.extract')
 		message = self.verify(ciphertext)
 		print message
 
